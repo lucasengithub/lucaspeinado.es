@@ -3,7 +3,10 @@
 ---
 
 <div>
-    <p id="yo">Lucas Peinado ⓘ</p>
+    <section>
+        <p id="yo">Lucas Peinado ⓘ</p>
+        <span id="showarrow">+</span>
+    </section>
     <a href="/LUCAS PEINADO - CV 2025.pdf">CV.PDF</a>
     <a href="https://00portfolio.lucaspeinado.es">Portfolio.WEB</a>
     <a onclick="alert('Próximamente...')">Portfolio.PDF</a>
@@ -50,10 +53,45 @@
         margin-left: 10px;
         cursor: pointer;
     }
+    #showarrow {
+        display: none;
+    }
+    section {
+        margin: 0;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    @media (max-width: 768px) {
+        div {
+            flex-direction: column;
+            align-items: flex-start;
+            height: auto;
+            padding: 0;
+        }
+        a {
+            margin: 0;
+            width: calc(100% - 20px);
+            text-align: right;
+            border: 1px solid rgb(0, 0, 0, 0.2);
+            padding: 10px;
+            display: none;
+        }
+        #showarrow {
+            display: block;
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        section {
+            width: 100%;
+        }
+    }
 </style>
 
 <script>
     const yo = document.getElementById("yo");
+    const mascosos = document.getElementById("showarrow");
     yo.addEventListener("mouseover", () => {
         yo.innerText = "hola@lucaspeinado.es";
         yo.style.color = "rgb(20, 200, 20)";
@@ -64,5 +102,14 @@
     });
     yo.addEventListener("click", () => {
         window.location.href = "mailto:hola@lucaspeinado.es";
+    });
+
+    mascosos.addEventListener("click", () => {
+        const links = document.querySelectorAll("a");
+        links.forEach((link) => {
+            link.style.display =
+                link.style.display === "block" ? "none" : "block";
+        });
+        mascosos.innerHTML = mascosos.innerHTML === "+" ? "-" : "+";
     });
 </script>
