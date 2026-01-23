@@ -1,0 +1,68 @@
+---
+//
+---
+
+<div>
+    <p id="yo">Lucas Peinado ⓘ</p>
+    <a href="/LUCAS PEINADO - CV 2025.pdf">CV.PDF</a>
+    <a href="https://portfolio.lucaspeinado.es">Portfolio.WEB</a>
+    <a onclick="alert('Próximamente...')">Portfolio.PDF</a>
+    <a href="https://desres.lucaspeinado.es">DES.RES</a>
+</div>
+
+<style>
+    div {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        height: 40px;
+        align-items: center;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: rgb(255, 255, 255, 0.8);
+        z-index: 1000;
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgb(0, 0, 0, 0.2);
+        * {
+            margin: 0;
+        }
+    }
+    a {
+        font-family: "DM Serif Display", serif;
+        color: rgb(255, 0, 0);
+        transition: color 0.3s ease-in-out;
+        text-decoration: none;
+        margin-right: 10px;
+    }
+    a:hover {
+        color: rgb(0, 0, 255);
+        transition: color 0.3s ease-in-out;
+        cursor: pointer;
+    }
+    p {
+        font-family: "DM Sans", sans-serif;
+        color: rgb(0, 0, 0);
+        padding: 0;
+        font-size: 20px;
+        width: 160px;
+        margin-left: 10px;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    const yo = document.getElementById("yo");
+    yo.addEventListener("mouseover", () => {
+        yo.innerText = "hola@lucaspeinado.es";
+        yo.style.color = "rgb(20, 200, 20)";
+    });
+    yo.addEventListener("mouseout", () => {
+        yo.innerText = "Lucas Peinado ⓘ";
+        yo.style.color = "rgb(0, 0, 0)";
+    });
+    yo.addEventListener("click", () => {
+        window.location.href = "mailto:hola@lucaspeinado.es";
+    });
+</script>

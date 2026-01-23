@@ -1,0 +1,94 @@
+---
+//
+---
+
+<div id="Dis">
+    <h1 id="holaDis"><span id="text"></span><span id="cursor">|</span></h1>
+</div>
+<p>
+    <b>El diseño es el sistema.</b>
+    <br />Es el conjunto de colores, formas e interacciones estratégicas. Su
+    modelo de uso, su sistema de fabricación. El diagrama que lo define y las
+    soluciones que plantea. El diseño no es arte. El diseño es un programa
+    informático que distribuye recursos en tiempo real. Una silla tiene un buen
+    diseño si su sistema funciona. El diseño es más que piezas de museo,
+    acabados estéticos o soluciones a problemas. El diseño es el sistema que
+    engloba en su conjunto todo el impacto, fabricación, consecuencias y
+    soluciones propuestas.
+</p>
+<br />
+<br />
+
+<style>
+    #Dis {
+        background-image: url("/src/assets/background.svg");
+        background-repeat: repeat;
+        background-attachment: local;
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    #holaDis {
+        margin: 45vh 0;
+        width: 100%;
+        color: rgb(255, 0, 0);
+        text-transform: uppercase;
+        font-display: swap;
+        text-align: center;
+        font-size: 4em;
+        font-family: "DM Serif Display", serif;
+    }
+
+    #cursor {
+        animation: blink 1s infinite;
+        opacity: 0;
+        font-family: serif;
+        font-weight: bolder;
+        font-size: 90px;
+        transform: translateY(20px);
+    }
+    p {
+        margin: 50px;
+        max-width: 800px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 1.2em;
+        line-height: 1.6;
+        text-align: justify;
+    }
+
+    @keyframes blink {
+        0%,
+        50% {
+            opacity: 1;
+        }
+        51%,
+        100% {
+            opacity: 0;
+        }
+    }
+</style>
+
+<script>
+    const text = "el diseño es el sistema.";
+    const textElement = document.getElementById("text");
+    const cursorElement = document.getElementById("cursor");
+    let index = 0;
+
+    function typeWriter() {
+        if (index < text.length) {
+            textElement.innerHTML += text.charAt(index);
+            index++;
+            setTimeout(typeWriter, 100);
+        } else {
+            cursorElement.style.opacity = "1";
+        }
+    }
+
+    typeWriter();
+</script>
