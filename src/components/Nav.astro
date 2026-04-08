@@ -93,19 +93,19 @@
 <script>
     const yo = document.getElementById("yo");
     const mascosos = document.getElementById("showarrow");
-    yo.addEventListener("mouseover", () => {
+    yo?.addEventListener("mouseover", () => {
         yo.innerText = "hola@lucaspeinado.es";
         yo.style.color = "rgb(20, 200, 20)";
     });
-    yo.addEventListener("mouseout", () => {
+    yo?.addEventListener("mouseout", () => {
         yo.innerText = "Lucas Peinado ⓘ";
         yo.style.color = "rgb(0, 0, 0)";
     });
-    yo.addEventListener("click", () => {
+    yo?.addEventListener("click", () => {
         window.location.href = "mailto:hola@lucaspeinado.es";
     });
 
-    mascosos.addEventListener("click", () => {
+    mascosos?.addEventListener("click", () => {
         const links = document.querySelectorAll("a");
         links.forEach((link) => {
             link.style.display =

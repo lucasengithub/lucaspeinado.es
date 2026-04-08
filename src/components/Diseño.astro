@@ -9,21 +9,38 @@
         >
     </h1>
 </div>
-<p>
-    <b>El diseño es el sistema.</b>
-    <br />Es el conjunto de colores, formas e interacciones estratégicas. Su
-    modelo de uso, su sistema de fabricación. El diagrama que lo define y las
-    soluciones que plantea. El diseño no es arte. El diseño es un programa
-    informático que distribuye recursos en tiempo real. Una silla tiene un buen
-    diseño si su sistema funciona. El diseño es más que piezas de museo,
-    acabados estéticos o soluciones a problemas. El diseño es el sistema que
-    engloba en su conjunto todo el impacto, fabricación, consecuencias y
-    soluciones propuestas.
-</p>
+<main>
+    <div class="v0">
+        <h3>El diseño es el sistema.</h3>
+        <p>
+            Es el conjunto de colores, formas e interacciones estratégicas. Su
+            modelo de uso, su sistema de fabricación. El diagrama que lo define
+            y las soluciones que plantea. El diseño no es arte. El diseño es un
+            programa informático que distribuye recursos en tiempo real. Una
+            silla tiene un buen diseño si su sistema funciona. El diseño es más
+            que piezas de museo, acabados estéticos o soluciones a problemas. El
+            diseño es el sistema que engloba en su conjunto todo el impacto,
+            fabricación, consecuencias y soluciones propuestas.
+        </p>
+    </div>
+</main>
 <br />
 <br />
 
 <style>
+    h1 {
+        font-weight: normal;
+    }
+    h3 {
+        font-weight: 500;
+        border-bottom: dotted black 2px;
+    }
+
+    main {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
     #Dis {
         background-image: url("/src/assets/background.svg");
         background-repeat: repeat;
@@ -52,13 +69,14 @@
         animation: blink 1s infinite;
         opacity: 0;
     }
-    p {
-        margin: 50px;
-        max-width: 800px;
-        font-family: "DM Sans", sans-serif;
-        font-size: 1.2em;
+    .v0 {
+        font-size: 0.9em;
         line-height: 1.6;
         text-align: justify;
+        max-width: 500px;
+        p {
+            font-family: "DM Sans", sans-serif;
+        }
     }
 
     @keyframes blink {
@@ -71,6 +89,13 @@
             opacity: 0;
         }
     }
+
+    @media screen and (max-width: 950px) {
+        main {
+            margin: 0 30px;
+            width: auto;
+        }
+    }
 </style>
 
 <script>
@@ -80,12 +105,14 @@
     let index = 0;
 
     function typeWriter() {
-        if (index < text.length) {
-            textElement.innerHTML += text.charAt(index);
-            index++;
-            setTimeout(typeWriter, 100);
-        } else {
-            cursorElement.style.opacity = "1";
+        if (textElement && cursorElement) {
+            if (index < text.length) {
+                textElement.innerHTML += text.charAt(index);
+                index++;
+                setTimeout(typeWriter, 100);
+            } else {
+                cursorElement.style.opacity = "1";
+            }
         }
     }
 
