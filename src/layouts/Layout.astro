@@ -16,7 +16,7 @@ const { title = "Lucas Peinado" } = Astro.props;
         <title>{title}</title>
     </head>
     <body>
-        <div id="overelment"></div>
+        <div id="grid-container"></div>
         <div id="custom-cursor">
             <img src="/cursor.png" alt="" />
         </div>
@@ -34,24 +34,6 @@ const { title = "Lucas Peinado" } = Astro.props;
         font-style: italic;
         src: url("/fonts/DMSans-Italic-VariableFont_opsz,wght.ttf")
             format("truetype");
-    }
-
-    #overelment {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 10;
-        background-image: radial-gradient(
-            circle,
-            rgba(255, 255, 255, 0.55) 1px,
-            transparent 1px
-        );
-        background-size: 88px 88px;
-        /* Cada punto se invierte respecto al píxel de contenido que tiene debajo. */
-        mix-blend-mode: difference;
     }
 
     *,
@@ -83,6 +65,28 @@ const { title = "Lucas Peinado" } = Astro.props;
         }
     }
 
+    #grid-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+        overflow: hidden;
+    }
+
+    .grid-dot {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.55);
+        transform-origin: center;
+        will-change: transform;
+        mix-blend-mode: difference;
+    }
+
     #custom-cursor {
         position: fixed;
         top: 0;
@@ -102,92 +106,167 @@ const { title = "Lucas Peinado" } = Astro.props;
     }
 </style>
 
-<script>
-    // ====================================================
-    //  AJUSTA ESTOS DOS VALORES PARA POSICIONAR EL CURSOR
-    // ====================================================
-    const CURSOR_OFFSET_X = -27;
-    const CURSOR_OFFSET_Y = -8;
-    // ====================================================
-    //  DRIFT: 0 = sin drift, 1 = drift máximo (0.1 - 0.2 recomendado)
-    // ====================================================
-    const DRIFT = 0.15;
-    // ====================================================
-    //  ROTACIÓN: intensidad y suavidad del tilt
-    // ====================================================
-    const ROTATION_INTENSITY = 0.3;
-    const ROTATION_DRIFT = 0.08;
-    // ====================================================
-    //  CLICK: escala al hacer click (punto de transformación = punta del cursor)
-    // ====================================================
-    const CLICK_SCALE = 0.9;
-    const CLICK_DRIFT = 0.2;
-    // ====================================================
+<script is:inline>
+    const GRID_SIZE = 88;
+    const DOT_BASE_SIZE = 2;
+    const MAX_SCALE = 3.5;
+    const NEIGHBOR_SCALE = 1.8;
+    const INFLUENCE_RADIUS = 140;
+    const NEIGHBOR_RADIUS = GRID_SIZE * 1.5;
 
     const cursor = document.getElementById("custom-cursor");
-    const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+    const cursorImg = cursor?.querySelector("img");
+    const gridContainer = document.getElementById("grid-container");
+    let mouseX = 0;
+    let mouseY = 0;
+    let cursorX = 0;
+    let cursorY = 0;
+    let cursorVisible = false;
+    let dots = [];
+    let cols = 0;
+    let rows = 0;
 
-    if (isTouchDevice) {
-        document.documentElement.style.cursor = "auto";
-        cursor?.remove();
-    } else {
-        let mouseX = 0;
-        let mouseY = 0;
-        let cursorX = 0;
-        let cursorY = 0;
-        let prevMouseX = 0;
-        let prevMouseY = 0;
-        let velocityX = 0;
-        let velocityY = 0;
-        let rotation = 0;
-        let targetRotation = 0;
-        let scale = 1;
-        let targetScale = 1;
+    const CURSOR_OFFSET_X = cursorImg?.width ? cursorImg.width / 2 - 2 : 12;
+    const CURSOR_OFFSET_Y = cursorImg?.height ? cursorImg.height / 2 - 2 : 12;
+    const SMOOTHING = 0.15;
 
-        let cursorVisible = false;
+    let targetRotation = 0;
+    let rotation = 0;
+    let targetScale = 1;
+    let scale = 1;
+    const ROTATION_DRIFT = 0.08;
+    const CLICK_DRIFT = 0.15;
+    const ROTATION_SCALE = 0.0025;
 
-        document.addEventListener("mousemove", (e) => {
-            mouseX = e.clientX + CURSOR_OFFSET_X;
-            mouseY = e.clientY + CURSOR_OFFSET_Y;
+    function createGrid() {
+        if (!gridContainer) return;
+        cols = Math.ceil(window.innerWidth / GRID_SIZE) + 1;
+        rows = Math.ceil(window.innerHeight / GRID_SIZE) + 1;
 
-            if (!cursorVisible) {
-                cursor?.classList.add("visible");
-                cursorVisible = true;
+        const fragment = document.createDocumentFragment();
+        dots = [];
+
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                const dot = document.createElement("div");
+                dot.className = "grid-dot";
+                const posX = x * GRID_SIZE;
+                const posY = y * GRID_SIZE;
+                dot.style.left = `${posX}px`;
+                dot.style.top = `${posY}px`;
+                dot.dataset.x = posX;
+                dot.dataset.y = posY;
+                fragment.appendChild(dot);
+                dots.push({
+                    el: dot,
+                    x: posX,
+                    y: posY,
+                    scale: 1,
+                    targetScale: 1,
+                });
             }
-        });
+        }
+        gridContainer.appendChild(fragment);
+    }
 
-        document.addEventListener("mousedown", () => {
-            targetScale = CLICK_SCALE;
-        });
+    function updateGrid() {
+        const newCols = Math.ceil(window.innerWidth / GRID_SIZE) + 1;
+        const newRows = Math.ceil(window.innerHeight / GRID_SIZE) + 1;
 
-        document.addEventListener("mouseup", () => {
-            targetScale = 1;
-        });
+        if (newCols !== cols || newRows !== rows) {
+            gridContainer.innerHTML = "";
+            createGrid();
+        }
+    }
 
-        function animate() {
-            cursorX += (mouseX - cursorX) * DRIFT;
-            cursorY += (mouseY - cursorY) * DRIFT;
+    function animateDots() {
+        for (const dot of dots) {
+            const dx = mouseX - dot.x;
+            const dy = mouseY - dot.y;
+            const dist = Math.hypot(dx, dy);
 
-            velocityX = mouseX - prevMouseX;
-            velocityY = mouseY - prevMouseY;
-            prevMouseX = mouseX;
-            prevMouseY = mouseY;
+            if (dist < INFLUENCE_RADIUS) {
+                const influence = 1 - dist / INFLUENCE_RADIUS;
+                const easedInfluence = influence * influence;
+                dot.targetScale = 1 + easedInfluence * (MAX_SCALE - 1);
+            } else {
+                // Check if neighbor of closest dot
+                const gridX = Math.round(mouseX / GRID_SIZE) * GRID_SIZE;
+                const gridY = Math.round(mouseY / GRID_SIZE) * GRID_SIZE;
+                const neighborDist = Math.hypot(dot.x - gridX, dot.y - gridY);
 
-            targetRotation = velocityX * ROTATION_INTENSITY;
-            rotation += (targetRotation - rotation) * ROTATION_DRIFT;
-
-            scale += (targetScale - scale) * CLICK_DRIFT;
-
-            if (cursor) {
-                cursor.style.left = `${cursorX}px`;
-                cursor.style.top = `${cursorY}px`;
-                cursor.style.transformOrigin = `${-CURSOR_OFFSET_X}px ${-CURSOR_OFFSET_Y}px`;
-                cursor.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+                if (neighborDist < NEIGHBOR_RADIUS && neighborDist > 0) {
+                    const influence = 1 - neighborDist / NEIGHBOR_RADIUS;
+                    const easedInfluence = influence * influence;
+                    dot.targetScale = 1 + easedInfluence * (NEIGHBOR_SCALE - 1);
+                } else {
+                    dot.targetScale = 1;
+                }
             }
 
-            requestAnimationFrame(animate);
+            dot.scale += (dot.targetScale - dot.scale) * 0.15;
+            dot.el.style.transform = `scale(${dot.scale})`;
+        }
+        requestAnimationFrame(animateDots);
+    }
+
+    function animateCursor() {
+        const prevCursorX = cursorX;
+        const prevCursorY = cursorY;
+        cursorX += (mouseX - CURSOR_OFFSET_X - cursorX) * SMOOTHING;
+        cursorY += (mouseY - CURSOR_OFFSET_Y - cursorY) * SMOOTHING;
+
+        const velocityX = cursorX - prevCursorX;
+        const velocityY = cursorY - prevCursorY;
+        targetRotation = velocityX * 0.3;
+
+        rotation += (targetRotation - rotation) * ROTATION_DRIFT;
+
+        scale += (targetScale - scale) * CLICK_DRIFT;
+
+        if (cursor) {
+            cursor.style.left = `${cursorX}px`;
+            cursor.style.top = `${cursorY}px`;
+            cursor.style.transformOrigin = `${-CURSOR_OFFSET_X}px ${-CURSOR_OFFSET_Y}px`;
+            cursor.style.transform = `rotate(${rotation}deg) scale(${scale})`;
         }
 
-        animate();
+        requestAnimationFrame(animateCursor);
+    }
+
+    document.addEventListener("mousemove", (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        if (!cursorVisible) {
+            cursor?.classList.add("visible");
+            cursorVisible = true;
+        }
+    });
+
+    document.addEventListener("mousedown", () => {
+        targetScale = 0.8;
+    });
+
+    document.addEventListener("mouseup", () => {
+        targetScale = 1;
+    });
+
+    window.addEventListener("resize", () => {
+        updateGrid();
+    });
+
+    if (cursorImg?.complete) {
+        init();
+    } else if (cursorImg) {
+        cursorImg.onload = init;
+    } else {
+        init();
+    }
+
+    function init() {
+        createGrid();
+        animateDots();
+        animateCursor();
     }
 </script>
