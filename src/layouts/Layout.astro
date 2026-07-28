@@ -1,24 +1,30 @@
+---
+interface Props {
+    title?: string;
+}
+
+const { title = "Lucas Peinado" } = Astro.props;
+---
+
 <!doctype html>
-<html lang="en">
+<html lang="es">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="generator" content={Astro.generator} />
-        <title>
-            Lucas Peinado - Estudiante de Diseño de Productos en la ESDM
-        </title>
+        <title>{title}</title>
     </head>
+    <body>
+        <div id="overelment"></div>
+        <div id="custom-cursor">
+            <img src="/cursor.png" alt="" />
+        </div>
+        <slot />
+    </body>
 </html>
-<body>
-    <slot />
-</body>
 
-<style>
-    @font-face {
-        font-family: "DM Serif Display";
-        src: url("/fonts/dm-serif-display-regular.woff2") format("woff2");
-    }
+<style is:global>
     @font-face {
         font-family: "DM Sans";
         src: url("/fonts/DMSans-VariableFont_opsz,wght.ttf") format("truetype");
@@ -29,11 +35,159 @@
         src: url("/fonts/DMSans-Italic-VariableFont_opsz,wght.ttf")
             format("truetype");
     }
-    html,
-    body {
-        margin: 0;
+
+    #overelment {
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
+        pointer-events: none;
+        z-index: 10;
+        background-image: radial-gradient(
+            circle,
+            rgba(255, 255, 255, 0.55) 1px,
+            transparent 1px
+        );
+        background-size: 88px 88px;
+        /* Cada punto se invierte respecto al píxel de contenido que tiene debajo. */
+        mix-blend-mode: difference;
+    }
+
+    *,
+    *::before,
+    *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html,
+    body {
+        width: 100%;
+        min-height: 100vh;
         font-family: "DM Sans", sans-serif;
+        background-color: #fff;
+    }
+
+    body {
+        isolation: isolate;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        html,
+        body,
+        a,
+        button {
+            cursor: none;
+        }
+    }
+
+    #custom-cursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    #custom-cursor.visible {
+        opacity: 1;
+    }
+
+    #custom-cursor img {
+        display: block;
     }
 </style>
+
+<script>
+    // ====================================================
+    //  AJUSTA ESTOS DOS VALORES PARA POSICIONAR EL CURSOR
+    // ====================================================
+    const CURSOR_OFFSET_X = -27;
+    const CURSOR_OFFSET_Y = -8;
+    // ====================================================
+    //  DRIFT: 0 = sin drift, 1 = drift máximo (0.1 - 0.2 recomendado)
+    // ====================================================
+    const DRIFT = 0.15;
+    // ====================================================
+    //  ROTACIÓN: intensidad y suavidad del tilt
+    // ====================================================
+    const ROTATION_INTENSITY = 0.3;
+    const ROTATION_DRIFT = 0.08;
+    // ====================================================
+    //  CLICK: escala al hacer click (punto de transformación = punta del cursor)
+    // ====================================================
+    const CLICK_SCALE = 0.9;
+    const CLICK_DRIFT = 0.2;
+    // ====================================================
+
+    const cursor = document.getElementById("custom-cursor");
+    const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+
+    if (isTouchDevice) {
+        document.documentElement.style.cursor = "auto";
+        cursor?.remove();
+    } else {
+        let mouseX = 0;
+        let mouseY = 0;
+        let cursorX = 0;
+        let cursorY = 0;
+        let prevMouseX = 0;
+        let prevMouseY = 0;
+        let velocityX = 0;
+        let velocityY = 0;
+        let rotation = 0;
+        let targetRotation = 0;
+        let scale = 1;
+        let targetScale = 1;
+
+        let cursorVisible = false;
+
+        document.addEventListener("mousemove", (e) => {
+            mouseX = e.clientX + CURSOR_OFFSET_X;
+            mouseY = e.clientY + CURSOR_OFFSET_Y;
+
+            if (!cursorVisible) {
+                cursor?.classList.add("visible");
+                cursorVisible = true;
+            }
+        });
+
+        document.addEventListener("mousedown", () => {
+            targetScale = CLICK_SCALE;
+        });
+
+        document.addEventListener("mouseup", () => {
+            targetScale = 1;
+        });
+
+        function animate() {
+            cursorX += (mouseX - cursorX) * DRIFT;
+            cursorY += (mouseY - cursorY) * DRIFT;
+
+            velocityX = mouseX - prevMouseX;
+            velocityY = mouseY - prevMouseY;
+            prevMouseX = mouseX;
+            prevMouseY = mouseY;
+
+            targetRotation = velocityX * ROTATION_INTENSITY;
+            rotation += (targetRotation - rotation) * ROTATION_DRIFT;
+
+            scale += (targetScale - scale) * CLICK_DRIFT;
+
+            if (cursor) {
+                cursor.style.left = `${cursorX}px`;
+                cursor.style.top = `${cursorY}px`;
+                cursor.style.transformOrigin = `${-CURSOR_OFFSET_X}px ${-CURSOR_OFFSET_Y}px`;
+                cursor.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    }
+</script>

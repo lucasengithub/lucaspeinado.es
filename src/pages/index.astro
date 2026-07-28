@@ -1,13 +1,88 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Diseño from "../components/Diseño.astro";
-import Nav from "../components/Nav.astro";
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
-    <Diseño />
-    <Nav />
+    <main>
+        <h4>Lucas Peinado - Estudiante de Diseño de Productos (ESD)</h4>
+        <h1>
+            <span id="text"></span><span id="cursor">_</span>
+        </h1>
+        <div>
+            <a href="mailto:hola@lucaspeinado.es">hola@lucaspeinado.es</a>
+            <span> | </span>
+            <a href="https://instagram.com/lucaspeinado.es" target="_blank"
+                >@lucaspeinado.es</a
+            >
+        </div>
+    </main>
 </Layout>
+
+<style>
+    main {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        min-height: 100vh;
+        padding: 2rem;
+        gap: 30px;
+    }
+
+    h1 {
+        font-size: 4rem;
+        font-weight: 1000;
+        color: rgb(255, 0, 0);
+        text-transform: uppercase;
+        text-align: center;
+        font-family: "DM Sans", sans-serif;
+    }
+
+    #cursor {
+        animation: blink 1s infinite;
+        opacity: 0;
+    }
+
+    a {
+        color: rgb(255, 0, 0);
+        font-weight: bold;
+        font-style: italic;
+    }
+    @keyframes blink {
+        0%,
+        50% {
+            opacity: 1;
+        }
+        51%,
+        100% {
+            opacity: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<script>
+    const text = "el diseño es el sistema";
+    const textElement = document.getElementById("text");
+    const cursorElement = document.getElementById("cursor");
+    let index = 0;
+
+    function typeWriter() {
+        if (textElement && cursorElement) {
+            if (index < text.length) {
+                textElement.innerHTML += text.charAt(index);
+                index++;
+                setTimeout(typeWriter, 100);
+            } else {
+                cursorElement.style.opacity = "1";
+            }
+        }
+    }
+
+    typeWriter();
+</script>
