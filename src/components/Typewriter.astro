@@ -1,0 +1,91 @@
+---
+interface Props {
+    text: string;
+    speed?: number;
+    cursorChar?: string;
+    class?: string;
+}
+
+const {
+    text = "el diseño es el sistema",
+    speed = 100,
+    cursorChar = "_",
+    class: className = "",
+} = Astro.props;
+---
+
+<style>
+    .typewriter {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        min-height: 100vh;
+        padding: 2rem;
+        gap: 30px;
+    }
+
+    .typewriter h1 {
+        font-size: 4rem;
+        font-weight: 1000;
+        color: rgb(255, 0, 0);
+        text-transform: uppercase;
+        text-align: center;
+        font-family: "DM Sans", sans-serif;
+        margin: 0;
+    }
+
+    .typewriter #cursor {
+        animation: blink 1s infinite;
+        opacity: 0;
+    }
+
+    .typewriter a {
+        color: rgb(255, 0, 0);
+        font-weight: bold;
+        font-style: italic;
+    }
+
+    @keyframes blink {
+        0%,
+        50% {
+            opacity: 1;
+        }
+        51%,
+        100% {
+            opacity: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .typewriter h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<div class="typewriter {className}">
+    <h1>
+        <span id="text"></span><span id="cursor">{cursorChar}</span>
+    </h1>
+</div>
+
+<script define:vars={{ text, speed }}>
+    const textElement = document.getElementById("text");
+    const cursorElement = document.getElementById("cursor");
+    let index = 0;
+
+    function typeWriter() {
+        if (textElement && cursorElement) {
+            if (index < text.length) {
+                textElement.innerHTML += text.charAt(index);
+                index++;
+                setTimeout(typeWriter, speed);
+            } else {
+                cursorElement.style.opacity = "1";
+            }
+        }
+    }
+
+    typeWriter();
+</script>

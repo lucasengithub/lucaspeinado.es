@@ -1,0 +1,53 @@
+---
+
+---
+
+<section class="allred-section">
+    <slot />
+</section>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const section = document.querySelector(".allred-section");
+
+        if (section) {
+            // Asegurar transición suave
+            document.body.style.transition = "background-color 0.5s ease";
+
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.intersectionRatio >= 0.5) {
+                            document.body.style.backgroundColor = "red";
+                            document.dispatchEvent(
+                                new CustomEvent("bgred", { detail: true }),
+                            );
+                        } else {
+                            document.body.style.backgroundColor = "";
+                            document.dispatchEvent(
+                                new CustomEvent("bgred", { detail: false }),
+                            );
+                        }
+                    });
+                },
+                { threshold: 0.5 },
+            );
+
+            observer.observe(section);
+        }
+    });
+</script>
+
+<style>
+    .allred-section {
+        display: flex;
+        flex-direction: column;
+        align-items: left;
+        margin: 0 200px;
+        max-width: 600px;
+        gap: 20px;
+        min-height: 100vh;
+        color: white;
+        text-align: left;
+    }
+</style>
